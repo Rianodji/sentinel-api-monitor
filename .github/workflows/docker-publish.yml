@@ -34,3 +34,37 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/sentinel-backend:latest
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3 # Nécessaire pour accéder au fichier yaml du repo
+
+      - name: Copy docker-compose.prod.yaml to VPS
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.ORACLE_HOST }}
+          username: ${{ secrets.ORACLE_USER }}
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          source: "docker-compose.prod.yaml"
+          target: "~/sentinel/"
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.ORACLE_HOST }}
+          username: ${{ secrets.ORACLE_USER }}
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          script: |
+            cd ~/sentinel
+            
+            # Connexion au Docker Hub
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+            
+            # Déploiement avec le fichier fraîchement copié
+            docker-compose -f docker-compose.prod.yaml pull
+            docker-compose -f docker-compose.prod.yaml up -d
+            
+            # Nettoyage
+            docker image prune -f
