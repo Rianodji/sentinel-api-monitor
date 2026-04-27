@@ -58,11 +58,13 @@ jobs:
           key: ${{ secrets.ORACLE_SSH_KEY }}
           script: |
             cd ~/sentinel
-            # On définit la variable pour que Docker Compose puisse la lire
-            export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+            # On écrit le nom d'utilisateur dans un fichier .env pour Docker Compose
+            echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env.docker
             
-            # Connexion et déploiement
+            # Connexion au Docker Hub
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-            docker-compose -f docker-compose.prod.yaml pull
-            docker-compose -f docker-compose.prod.yaml up -d
+            
+            # Déploiement en utilisant le fichier d'environnement
+            docker compose --env-file .env.docker -f docker-compose.prod.yaml pull
+            docker compose --env-file .env.docker -f docker-compose.prod.yaml up -d
             docker image prune -f
