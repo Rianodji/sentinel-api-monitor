@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CqrsModule } from '@nestjs/cqrs';
 import { UserOrmEntity } from './persistence/typeorm/user.orm-entity';
 import { IUserRepository } from '../domain/repositories/user.repository.interface';
 import { TypeOrmUserRepository } from './persistence/typeorm/user.repository';
@@ -14,15 +15,16 @@ import { JwtStrategy } from './auth/strategies/jwt.strategy';
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserOrmEntity]),
-    PassportModule.register({ defaultStrategy: 'jwt' }),
+    PassportModule,
+    CqrsModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'super-secret',
+        secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '1d',
-        },
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '3600s',
+        } as any, // Cast for compatibility
       }),
     }),
   ],
@@ -36,6 +38,6 @@ import { JwtStrategy } from './auth/strategies/jwt.strategy';
     LoginUserUseCase,
     JwtStrategy,
   ],
-  exports: [RegisterUserUseCase, LoginUserUseCase, JwtModule, PassportModule],
+  exports: [IUserRepository, JwtModule],
 })
 export class IamModule {}

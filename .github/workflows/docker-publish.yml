@@ -41,13 +41,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3 # Nécessaire pour accéder au fichier yaml du repo
 
-      - name: Copy docker-compose.prod.yaml to VPS
+      - name: Copy files to VPS
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.ORACLE_HOST }}
           username: ${{ secrets.ORACLE_USER }}
           key: ${{ secrets.ORACLE_SSH_KEY }}
-          source: "docker-compose.prod.yaml"
+          source: "docker-compose.prod.yaml,infrastructure/"
           target: "~/sentinel/"
 
       - name: Deploy via SSH
@@ -58,13 +58,22 @@ jobs:
           key: ${{ secrets.ORACLE_SSH_KEY }}
           script: |
             cd ~/sentinel
-            # On écrit le nom d'utilisateur dans un fichier .env pour Docker Compose
+            # Création du réseau externe s'il n'existe pas
+            docker network inspect sentinel_network >/dev/null 2>&1 || \
+            docker network create sentinel_network
+
+            # On écrit les secrets dans un fichier .env pour Docker Compose
             echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env.docker
-            
+            echo "GRAFANA_ADMIN_USER=${{ secrets.GRAFANA_ADMIN_USER }}" >> .env.docker
+            echo "GRAFANA_ADMIN_PASSWORD=${{ secrets.GRAFANA_ADMIN_PASSWORD }}" >> .env.docker
+            echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env.docker
+            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env.docker
+            echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env.docker
+
             # Connexion au Docker Hub
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-            
-            # Déploiement en utilisant le fichier d'environnement
+
+            # Déploiement de l'application principale uniquement
             docker compose --env-file .env.docker -f docker-compose.prod.yaml pull
             docker compose --env-file .env.docker -f docker-compose.prod.yaml up -d
             docker image prune -f

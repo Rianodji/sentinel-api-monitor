@@ -1,0 +1,102 @@
+services:
+  loki:
+    image: grafana/loki:latest
+    container_name: sentinel_loki
+    restart: always
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki_data:/loki
+    networks:
+      - sentinel_network
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: sentinel_promtail
+    restart: always
+    volumes:
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./promtail-config.yaml:/etc/promtail/config.yaml
+    command: -config.file=/etc/promtail/config.yaml
+    networks:
+      - sentinel_network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: sentinel_prometheus
+    restart: always
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - sentinel_network
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: sentinel_node_exporter
+    restart: always
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - sentinel_network
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: sentinel_cadvisor
+    restart: always
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    networks:
+      - sentinel_network
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: sentinel_grafana
+    restart: always
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - sentinel_network
+    depends_on:
+      - loki
+      - prometheus
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: sentinel_phpmyadmin
+    restart: always
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=sentinel_db
+    networks:
+      - sentinel_network
+    # Pas de ports exposés, accès via tunnel SSH sur le port 8080 (interne au container)
+
+networks:
+  sentinel_network:
+    external: true
+
+volumes:
+  loki_data:
+  grafana_data:
+  prometheus_data:

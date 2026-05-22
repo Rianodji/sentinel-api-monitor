@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 
 async function bootstrap() {
@@ -29,7 +30,18 @@ async function bootstrap() {
   // API Prefix
   app.setGlobalPrefix('api/v1');
 
+  // Documentation Swagger
+  const config = new DocumentBuilder()
+    .setTitle('Sentinel API')
+    .setDescription('The Sentinel monitoring system API documentation')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/v1/docs', app, document);
+
   await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
   console.log(`🚀 Sentinel API is running on: ${await app.getUrl()}/api/v1`);
+  console.log(`📄 Swagger documentation available at: ${await app.getUrl()}/api/v1/docs`);
 }
 bootstrap();
