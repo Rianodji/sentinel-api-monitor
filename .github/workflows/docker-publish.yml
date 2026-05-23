@@ -69,6 +69,12 @@ jobs:
             echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env.docker
             echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env.docker
             echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env.docker
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env.docker
+            echo "SMTP_HOST=${{ secrets.SMTP_HOST }}" >> .env.docker
+            echo "SMTP_PORT=${{ secrets.SMTP_PORT }}" >> .env.docker
+            echo "SMTP_USER=${{ secrets.SMTP_USER }}" >> .env.docker
+            echo "SMTP_PASS=${{ secrets.SMTP_PASS }}" >> .env.docker
+            echo "SMTP_FROM=${{ secrets.SMTP_FROM }}" >> .env.docker
 
             # Connexion au Docker Hub
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
