@@ -8,6 +8,8 @@ import { EndpointStatus } from '../../domain/entities/endpoint.entity';
 import { ICheckResultRepository } from '../../domain/repositories/check-result.repository.interface';
 import { CheckResult } from '../../domain/entities/check-result.entity';
 import { EndpointStatusChangedEvent } from '../../domain/events/endpoint-status-changed.event';
+import { SslCertificateExpiringEvent } from '../../domain/events/ssl-certificate-expiring.event';
+import { SslScanner } from './ssl/ssl-scanner';
 
 @Processor('monitoring')
 export class MonitoringProcessor extends WorkerHost {
@@ -26,6 +28,27 @@ export class MonitoringProcessor extends WorkerHost {
   async process(job: Job<{ id: string; url: string }>): Promise<any> {
     const { id, url } = job.data;
     this.logger.debug(`Checking endpoint ${url}...`);
+
+    // Vérification SSL si HTTPS
+    if (url.startsWith('https')) {
+      try {
+        const hostname = new URL(url).hostname;
+        const ssl = await SslScanner.getSslInfo(hostname);
+        this.logger.debug(`SSL scan for ${hostname}: ${ssl.daysRemaining} days remaining`);
+
+        if (ssl.daysRemaining < 30) {
+          const endpoint = await this.endpointRepository.findById(id);
+          if (endpoint) {
+             this.logger.warn(`SSL certificate for ${hostname} expires in ${ssl.daysRemaining} days! Publishing event...`);
+             this.eventBus.publish(
+               new SslCertificateExpiringEvent(id, endpoint.userId, url, ssl.daysRemaining)
+             );
+          }
+        }
+      } catch (e) {
+        this.logger.error(`SSL check failed for ${url}: ${e.message}`);
+      }
+    }
 
     const start = Date.now();
     try {
