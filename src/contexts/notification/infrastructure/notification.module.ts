@@ -22,6 +22,11 @@ import { SslCertificateExpiringHandler } from '../application/events/handlers/ss
       provide: INotificationRepository,
       useClass: TypeOrmNotificationRepository,
     },
+    {
+      provide: 'NOTIFICATION_CHANNELS',
+      useFactory: (emailService: EmailNotifierService) => [emailService],
+      inject: [EmailNotifierService],
+    },
     SendNotificationUseCase,
     EmailNotifierService,
     EndpointStatusChangedHandler,

@@ -1,11 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
+import { INotificationChannel, NotificationChannelType } from '../../domain/ports/notification-channel.interface';
 
 @Injectable()
-export class EmailNotifierService {
+export class EmailNotifierService implements INotificationChannel {
   private readonly logger = new Logger(EmailNotifierService.name);
   private transporter: nodemailer.Transporter;
+  public readonly type = NotificationChannelType.EMAIL;
 
   constructor(private readonly configService: ConfigService) {
     const host = this.configService.get<string>('SMTP_HOST');
@@ -22,7 +24,6 @@ export class EmailNotifierService {
       },
     });
 
-    // Vérifier la connexion au démarrage (sans logger de détails sensibles)
     this.transporter.verify((error) => {
       if (error) {
         this.logger.error(`SMTP Connection Error: ${error.message}`);
@@ -32,16 +33,16 @@ export class EmailNotifierService {
     });
   }
 
-  async sendEmail(to: string, subject: string, body: string): Promise<void> {
+  async send(to: string, subject: string, message: string): Promise<void> {
     try {
-      this.logger.debug(`Attempting to send email to: ${to.replace(/(.{3}).*@/, '$1***@')}`); // Masquage partiel de l'email
+      this.logger.debug(`Attempting to send email to: ${to.replace(/(.{3}).*@/, '$1***@')}`);
       
       const info = await this.transporter.sendMail({
         from: `"Sentinel Monitor" <${this.configService.get<string>('SMTP_FROM', 'noreply@sentinel.api')}>`,
         to,
         subject,
-        text: body,
-        html: `<b>${body}</b>`,
+        text: message,
+        html: `<b>${message}</b>`,
       });
 
       this.logger.log(`Email sent successfully: ${info.messageId}`);

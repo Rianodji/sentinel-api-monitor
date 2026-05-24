@@ -7,7 +7,7 @@ export class SendTestEmailHandler implements ICommandHandler<SendTestEmailComman
   constructor(private readonly emailService: EmailNotifierService) {}
 
   async execute(command: SendTestEmailCommand): Promise<void> {
-    await this.emailService.sendEmail(
+    await this.emailService.send(
       command.email || 'test@example.com',
       'Test Email Sentinel',
       'Ceci est un email de test de votre infrastructure Sentinel via CommandBus.',
