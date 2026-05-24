@@ -9,6 +9,7 @@ import { EmailNotifierService } from './services/email-notifier.service';
 import { IamModule } from '../../iam/infrastructure/iam.module';
 import { EndpointStatusChangedHandler } from '../application/events/handlers/endpoint-status-changed.handler';
 import { SendTestEmailHandler } from '../application/commands/handlers/send-test-email.handler';
+import { SslCertificateExpiringHandler } from '../application/events/handlers/ssl-certificate-expiring.handler';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { SendTestEmailHandler } from '../application/commands/handlers/send-test
     EmailNotifierService,
     EndpointStatusChangedHandler,
     SendTestEmailHandler,
+    SslCertificateExpiringHandler,
   ],
   exports: [SendNotificationUseCase],
 })

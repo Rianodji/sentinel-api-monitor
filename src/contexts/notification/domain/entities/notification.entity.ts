@@ -3,6 +3,7 @@ import { Entity } from '../../../../shared-kernel/domain/entity.base';
 export enum NotificationType {
   ENDPOINT_DOWN = 'ENDPOINT_DOWN',
   ENDPOINT_UP = 'ENDPOINT_UP',
+  SSL_EXPIRING = 'SSL_EXPIRING',
 }
 
 interface NotificationProps {
