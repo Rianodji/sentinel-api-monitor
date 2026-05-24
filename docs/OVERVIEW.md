@@ -9,7 +9,8 @@ Le projet suit une **Architecture Hexagonale (DDD)** :
     *   `IAM` : Gestion des identités et accès (Authentification, Sécurité).
     *   `Monitoring` : Cœur métier (Health Checks, Scheduler, Historique).
     *   `Notification` : Système d'alerting découplé via CQRS et Événements.
-*   **Communication** : Pattern CQRS pour le découplage asynchrone.
+*   **Multi-tenancy (SaaS)** : Isolation stricte des configurations par utilisateur via l'entité `NotificationSettings`.
+*   **Communication** : Pattern CQRS pour le découplage asynchrone entre contextes.
 *   **Monitoring Stack** : Observabilité complète avec Loki (logs), Prometheus (métriques) et Grafana (visualisation).
 
 ## 3. User Stories (Backlog)
@@ -21,12 +22,12 @@ Le projet suit une **Architecture Hexagonale (DDD)** :
 *   **US-MON-04 (Performance)** : Alerting sur latence critique (> 500ms).
 
 ### Bounded Context: Notification
-*   **US-NOT-01** : Recevoir une alerte par email lors d'un changement de statut (UP/DOWN).
-*   **US-NOT-02 (Multi-canal)** : Choisir entre Email, Slack ou Webhook.
+*   **US-NOT-01 (Email)** : Recevoir une alerte par email lors d'un changement de statut (UP/DOWN).
+*   **US-NOT-02 (Multi-canal)** : Chaque utilisateur peut configurer son propre Webhook Slack.
 *   **US-NOT-03 (SSL)** : Alerte expiration SSL (30 jours).
 
 ### Bounded Context: Management
-*   **US-MGMT-01** : Générer un rapport de disponibilité (SLA) mensuel.
+*   **US-MGMT-01 (SLA)** : Générer un rapport de disponibilité mensuel via agrégation SQL.
 *   **US-MGMT-02** : Suspendre le monitoring (Maintenance).
 
 ## 4. Évolutions Futures (Vision IA)
@@ -35,12 +36,12 @@ Le projet suit une **Architecture Hexagonale (DDD)** :
 *   **Optimisation des Fréquences** : Ajustement dynamique de la fréquence de monitoring basé sur la criticité et l'historique du service.
 
 ## 5. Roadmap de Développement
-| Branche | Fonctionnalité | Priorité |
+| Branche | Fonctionnalité | Statut |
 | :--- | :--- | :--- |
-| `feat/ssl-monitoring` | Alerte expiration SSL | Haute |
-| `feat/slack-integration` | Alerting Slack | Moyenne |
-| `feat/sla-reporting` | Génération rapport SLA | Moyenne |
-| `feat/ai-diagnostic` | Analyse IA des logs (POC) | Basse |
+| `feat/ssl-monitoring` | Alerte expiration SSL | ✅ Mergé |
+| `feat/slack-integration` | Intégration Slack SaaS | ✅ Mergé |
+| `feat/sla-reporting` | Rapport SLA SQL | ✅ Mergé |
+| `feat/ai-diagnostic` | Analyse IA des logs (POC) | 📅 À venir |
 
 ---
 *Documentation maintenue par Sentinel API Engine.*

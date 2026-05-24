@@ -1,16 +1,17 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { SendTestEmailCommand } from '../send-test-email.command';
-import { EmailNotifierService } from '../../../infrastructure/services/email-notifier.service';
+import { SendNotificationUseCase } from '../../use-cases/send-notification.use-case';
+import { NotificationType } from '../../../domain/entities/notification.entity';
 
 @CommandHandler(SendTestEmailCommand)
 export class SendTestEmailHandler implements ICommandHandler<SendTestEmailCommand> {
-  constructor(private readonly emailService: EmailNotifierService) {}
+  constructor(private readonly sendNotificationUseCase: SendNotificationUseCase) {}
 
   async execute(command: SendTestEmailCommand): Promise<void> {
-    await this.emailService.send(
-      command.email || 'test@example.com',
-      'Test Email Sentinel',
-      'Ceci est un email de test de votre infrastructure Sentinel via CommandBus.',
+    await this.sendNotificationUseCase.execute(
+      command.userId, 
+      NotificationType.ENDPOINT_UP,
+      'Ceci est un message de test envoyé via le nouveau moteur multi-tenant de Sentinel (Email + Slack) !',
     );
   }
 }

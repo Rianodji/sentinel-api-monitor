@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, Get, Query, UseGuards, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { CommandBus } from '@nestjs/cqrs';
 import { AuthGuard } from '@nestjs/passport';
@@ -37,8 +37,9 @@ export class AuthController {
   @Get('test-email')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  async testEmail(@Query('email') email: string) {
-    await this.commandBus.execute(new SendTestEmailCommand(email));
-    return { message: 'Email de test envoyé via CommandBus' };
+  async testEmail(@Query('email') email: string, @Req() req: any) {
+    const userId = req.user.id;
+    await this.commandBus.execute(new SendTestEmailCommand(email, userId));
+    return { message: 'Email de test envoyé via CommandBus (Moteur Multi-tenant)' };
   }
 }

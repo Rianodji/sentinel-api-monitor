@@ -1,3 +1,6 @@
 export class SendTestEmailCommand {
-  constructor(public readonly email: string) {}
+  constructor(
+    public readonly email: string,
+    public readonly userId: string,
+  ) {}
 }
