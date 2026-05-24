@@ -12,6 +12,7 @@ import { TypeOrmCheckResultRepository } from './persistence/typeorm/check-result
 import { CreateEndpointUseCase } from '../application/use-cases/create-endpoint.use-case';
 import { GetUserEndpointsUseCase } from '../application/use-cases/get-user-endpoints.use-case';
 import { GetEndpointHistoryUseCase } from '../application/use-cases/get-endpoint-history.use-case';
+import { GetSlaReportUseCase } from '../application/use-cases/get-sla-report.use-case';
 import { EndpointController } from './controllers/endpoint.controller';
 import { MonitoringSchedulerService } from './services/monitoring-scheduler.service';
 import { MonitoringProcessor } from './services/monitoring.processor';
@@ -47,6 +48,7 @@ import { MonitoringProcessor } from './services/monitoring.processor';
     CreateEndpointUseCase,
     GetUserEndpointsUseCase,
     GetEndpointHistoryUseCase,
+    GetSlaReportUseCase,
     MonitoringSchedulerService,
     MonitoringProcessor,
   ],
