@@ -4,6 +4,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { CreateEndpointUseCase } from '../../application/use-cases/create-endpoint.use-case';
 import { GetUserEndpointsUseCase } from '../../application/use-cases/get-user-endpoints.use-case';
 import { GetEndpointHistoryUseCase } from '../../application/use-cases/get-endpoint-history.use-case';
+import { GetSlaReportUseCase } from '../../application/use-cases/get-sla-report.use-case';
 import { CreateEndpointDto } from '../../application/dtos/create-endpoint.dto';
 
 @ApiTags('Endpoints')
@@ -15,6 +16,7 @@ export class EndpointController {
     private readonly createEndpointUseCase: CreateEndpointUseCase,
     private readonly getUserEndpointsUseCase: GetUserEndpointsUseCase,
     private readonly getEndpointHistoryUseCase: GetEndpointHistoryUseCase,
+    private readonly getSlaReportUseCase: GetSlaReportUseCase,
   ) {}
 
   @Post()
@@ -56,5 +58,12 @@ export class EndpointController {
       errorMessage: h.errorMessage,
       checkedAt: h.checkedAt,
     }));
+  }
+
+  @Get(':id/sla')
+  @ApiOperation({ summary: 'Get SLA report for an endpoint' })
+  @ApiResponse({ status: 200, description: 'SLA percentage for the last 30 days' })
+  async getSla(@Param('id') id: string) {
+    return await this.getSlaReportUseCase.execute(id);
   }
 }
